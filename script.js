@@ -24,17 +24,53 @@ document.addEventListener('DOMContentLoaded', () => {
     navToggle.setAttribute('aria-expanded', isOpen);
   });
 
-  // Mobile: toggle dropdown on click (not hover)
-  document.querySelectorAll('.nav-dropdown > a').forEach(link => {
-    link.addEventListener('click', (e) => {
-      if (window.innerWidth <= 900) {
-        e.preventDefault();
-        link.parentElement.classList.toggle('open-mobile');
-      }
+  /* ── DROPDOWN: clic para abrir/cerrar en desktop Y móvil ── */
+  const dropdowns = document.querySelectorAll('.nav-dropdown');
+
+  function closeAllDropdowns(except) {
+    dropdowns.forEach(d => {
+      if (d !== except) d.classList.remove('open');
+    });
+  }
+
+  dropdowns.forEach(dropdown => {
+    const trigger = dropdown.querySelector(':scope > a');
+
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const isOpen = dropdown.classList.contains('open');
+      closeAllDropdowns(dropdown);
+      dropdown.classList.toggle('open', !isOpen);
+    });
+
+    // Los links del dropdown cierran el menú al hacer clic
+    dropdown.querySelectorAll('.dropdown-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        dropdown.classList.remove('open');
+        // En móvil también cierra el nav completo
+        if (window.innerWidth <= 900) {
+          navLinks.classList.remove('open');
+          navToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
     });
   });
 
-  // Close menu when a nav link (non-dropdown) is clicked
+  // Clic fuera cierra todos los dropdowns
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-dropdown')) {
+      closeAllDropdowns();
+    }
+  });
+
+  // Tecla Escape cierra todos los dropdowns
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllDropdowns();
+  });
+
+  // Close menu when a direct nav link (non-dropdown) is clicked
   navLinks.querySelectorAll('a:not(.nav-dropdown > a)').forEach(link => {
     link.addEventListener('click', () => {
       navLinks.classList.remove('open');
